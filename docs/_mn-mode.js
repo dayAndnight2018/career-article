@@ -221,7 +221,11 @@
         if (h1) h1.classList.add('essay-title');
         [].slice.call(sec.children).some(function (el) {
             if (el.tagName !== 'H2') return false;
-            if (/^\s*—/.test(el.textContent)) { el.classList.add('essay-subtitle'); return true; }
+            if (/^\s*—/.test(el.textContent)) {
+                // 副标题只剩破折号（模板删空后的 “## ——”）视为没有副标题：整段移除，不占位
+                if (!el.textContent.replace(/[\s—]/g, '')) { el.remove(); return false; }
+                el.classList.add('essay-subtitle'); return true;
+            }
             return false;
         });
     }

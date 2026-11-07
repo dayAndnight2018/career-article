@@ -701,5 +701,10 @@
             })();
         </script>
         <script src="_mn-mode.js"></script>
+    <script>
+        (function (cfg) {
+            cfg.alias = Object.assign({}, cfg.alias, { '/.*/_sidebar.md': '/_sidebar.md' });
+        })(window.$docsify = window.$docsify || {});
+    </script>
 </body>
 </html>
