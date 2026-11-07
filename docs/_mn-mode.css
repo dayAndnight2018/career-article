@@ -1,0 +1,155 @@
+/* ==================== MarkdownNotes 场景模式样式 ====================
+   通用：日记 diary / 行测题卡 exam / 申论论文 essay
+   作用域 [data-mode] —— 应用内预览容器、导出 HTML 的 .markdown-body 包裹层、
+   docsify 静态页的 .markdown-section 均携带该属性，三处共用本文件。 */
+
+/* ---------- 日记：暖纸手账 ---------- */
+[data-mode="diary"]{
+    background:#fbf5ea;
+    color:#54463a;
+    font-family:Georgia,'Noto Serif SC','Source Han Serif SC','STSong',serif;
+}
+[data-mode="diary"] p{text-indent:2em;line-height:2.05;margin:.9em 0}
+[data-mode="diary"] h1.diary-title{
+    text-align:center;text-indent:0;font-size:1.5em;font-weight:600;color:#7c5c3e;
+    margin:1em 0 .6em;padding-bottom:.4em;border-bottom:1px dashed #d9c8a9;
+}
+[data-mode="diary"] h2{
+    font-size:1.15em;color:#a06a2c;text-indent:0;margin:1.4em 0 .5em;
+    padding-left:.6em;border-left:4px solid #e8b662;border-bottom:none;
+}
+[data-mode="diary"] h3{font-size:1.05em;color:#8a6d3b;text-indent:0;margin:1em 0 .4em}
+[data-mode="diary"] blockquote{background:#f6ecd9;border-left:4px solid #d9a45b;color:#7a664f;border-radius:0 8px 8px 0}
+[data-mode="diary"] blockquote p{text-indent:0}
+[data-mode="diary"] hr{border:none;border-top:1px dashed #d9c8a9}
+[data-mode="diary"] code{background:#f3ead8;color:#a15c2f}
+[data-mode="diary"] pre{background:#f7f0e2;border:1px solid #e7dcc4}
+[data-mode="diary"] table th{background:#f3ead8}
+[data-mode="diary"] a{color:#b0722e}
+[data-mode="diary"] img{border-radius:8px}
+
+.mn-diary-head{
+    display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;
+    padding:14px 18px;margin:0 0 18px;
+    background:linear-gradient(135deg,#f9efdd,#f6e7cc);
+    border:1px solid #e8d5b0;border-radius:14px;
+    box-shadow:0 2px 10px rgba(160,120,60,.10);
+}
+.mn-diary-head .dh-left{display:flex;align-items:center;gap:12px}
+.mn-diary-head .dh-day{
+    font-size:2.6em;font-weight:700;line-height:1;color:#8a5a2b;
+    font-family:Georgia,'Noto Serif SC',serif;
+}
+.mn-diary-head .dh-col{display:flex;flex-direction:column;gap:2px}
+.mn-diary-head .dh-ym{font-size:.95em;color:#7a5c38;font-weight:600}
+.mn-diary-head .dh-week{font-size:.8em;color:#a2845e}
+.mn-diary-head .dh-chips{display:flex;gap:8px;flex-wrap:wrap}
+.mn-diary-head .dh-chip{
+    background:#fff;border:1px solid #e3cfa6;color:#8a6a3f;
+    border-radius:999px;padding:4px 12px;font-size:.85em;
+}
+
+/* ---------- 行测题卡 ---------- */
+[data-mode="exam"]{background:#f6f7fb;color:#2f3542}
+[data-mode="exam"] p{line-height:1.9;margin:.6em 0}
+[data-mode="exam"] h1,[data-mode="exam"] h2{border-bottom:none;padding-bottom:0}
+.exam-card{
+    background:#fff;border:1px solid #e4e8f0;border-radius:12px;
+    padding:20px 24px;margin:0 0 18px;
+    box-shadow:0 2px 10px rgba(80,100,160,.07);
+}
+.exam-hd{display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap}
+.exam-badge{
+    display:inline-block;padding:3px 12px;border-radius:999px;
+    font-size:.78em;font-weight:600;color:#fff;background:#778ca3;letter-spacing:.5px;
+}
+.exam-badge[data-type*="常识"]{background:#8854d0}
+.exam-badge[data-type*="言语"]{background:#2e86de}
+.exam-badge[data-type*="数量"]{background:#20bf6b}
+.exam-badge[data-type*="判断"]{background:#fa8231}
+.exam-badge[data-type*="资料"]{background:#0fb9b1}
+.exam-title{font-size:1.2em;margin:.2em 0 .5em;color:#1e272e;font-weight:600}
+.exam-stem{
+    font-size:1em;line-height:1.9;margin:.6em 0 1em;padding:.7em 1em;
+    background:#f8f9fd;border-left:4px solid #5761a8;border-radius:0 8px 8px 0;color:#333a45;
+}
+.exam-options{display:flex;flex-direction:column;gap:6px;margin:.8em 0;padding-left:0}
+.exam-option{
+    display:flex;gap:10px;align-items:flex-start;list-style:none;
+    padding:8px 12px;border:1px solid #e8ecf3;border-radius:8px;line-height:1.7;
+    transition:background .15s,border-color .15s;
+}
+.exam-option:hover{background:#f4f7ff}
+.exam-option .opt-key{
+    flex-shrink:0;width:24px;height:24px;border-radius:50%;
+    display:inline-flex;align-items:center;justify-content:center;
+    border:1.5px solid #b9c4d8;color:#5761a8;font-size:.8em;font-weight:700;margin-top:2px;
+}
+.exam-option[data-correct] .opt-key{background:#20bf6b;border-color:#20bf6b;color:#fff}
+.exam-option[data-correct] .opt-body::after{content:' ✓';color:#20bf6b;font-weight:700}
+[data-mode="exam"] .exam-option[data-correct]{background:#effaf3;border-color:#7dcea0}
+.exam-key{
+    margin-top:14px;background:#f7f8fc;border:1px solid #e4e8f0;border-radius:10px;
+    padding:0 14px;
+}
+.exam-key summary{cursor:pointer;font-weight:600;color:#5761a8;padding:10px 2px;user-select:none}
+.exam-key summary::marker{color:#5761a8}
+.exam-key-body{padding:2px 2px 12px}
+.key-row{display:flex;gap:10px;margin:8px 0;align-items:flex-start}
+.key-label{
+    flex-shrink:0;min-width:3.2em;text-align:center;font-size:.78em;font-weight:600;
+    background:#eef1f8;color:#5761a8;border-radius:6px;padding:3px 8px;margin-top:2px;
+}
+.key-row.key-ans .key-label{background:#20bf6b;color:#fff}
+.key-row.key-ans .key-val{font-size:1.15em;font-weight:700;color:#20bf6b;letter-spacing:2px}
+.key-val{flex:1;line-height:1.8}
+
+/* ---------- 申论论文：公文纸 ---------- */
+[data-mode="essay"]{
+    background:#fff;color:#2f2f2f;
+    font-family:'FangSong','STFangsong','Noto Serif SC','Source Han Serif SC','SimSun',serif;
+    font-size:17px;
+}
+[data-mode="essay"] p{text-indent:2em;text-align:justify;line-height:2.1;margin:1em 0}
+[data-mode="essay"] h1,[data-mode="essay"] h1.essay-title{
+    text-align:center;text-indent:0;font-size:1.5em;font-weight:700;
+    font-family:'Noto Serif SC','Source Han Serif SC','SimHei',serif;
+    margin:1.4em 0 .4em;padding:0;border:none;color:#1a1a1a;letter-spacing:1px;
+}
+[data-mode="essay"] h2.essay-subtitle{
+    text-align:center;text-indent:0;font-size:1em;font-weight:500;
+    color:#5a5a5a;margin:0 0 1.6em;border:none;padding:0;letter-spacing:2px;
+}
+[data-mode="essay"] blockquote{background:#f7f7f2;border-left:4px solid #b8b8a8;color:#4a4a40}
+[data-mode="essay"] blockquote p{text-indent:0}
+[data-mode="essay"] strong{font-family:'Noto Serif SC','Source Han Serif SC','SimHei',serif}
+[data-mode="essay"] hr{border:none;border-top:1px solid #ccc}
+
+/* ---------- 移动端适配（≤640px 手机浏览器；PDF/A4 ≈794px、桌面端不受影响） ---------- */
+@media (max-width:640px){
+    /* 宽元素防溢出：图片收缩、代码块/表格横向滚动 */
+    [data-mode] img{max-width:100%}
+    [data-mode] pre{overflow-x:auto}
+    [data-mode] table{display:block;overflow-x:auto}
+
+    /* 日记头卡片：收紧内边距，日期数字略缩 */
+    .mn-diary-head{padding:12px 14px;gap:10px;border-radius:12px}
+    .mn-diary-head .dh-day{font-size:2.2em}
+    .mn-diary-head .dh-chip{padding:3px 10px;font-size:.8em}
+
+    /* 题卡：收紧内边距与选项行距 */
+    .exam-card{padding:13px 14px;margin-bottom:14px}
+    .exam-stem{padding:.6em .75em}
+    .exam-option{padding:7px 10px;gap:8px}
+    .exam-option .opt-key{width:22px;height:22px}
+    .exam-key{padding:0 10px}
+
+    /* 论文：字号与行距微调，保持公文观感 */
+    [data-mode="essay"]{font-size:16px}
+    [data-mode="essay"] p{line-height:2}
+}
+
+/* ---------- 应用内预览容器配合（对导出/静态页无副作用） ---------- */
+.preview-box:has([data-mode="diary"]){background:#fbf5ea}
+.preview-box:has([data-mode="exam"]){background:#eef0f6}
+.preview-box:has([data-mode="essay"]){background:#eceae4}

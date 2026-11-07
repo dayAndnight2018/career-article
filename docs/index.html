@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Document</title>
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+        <meta name="description" content="Description">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
+        <link rel="stylesheet" href="//dayandnight2018.github.io/lib/css/vue.css">
+        <script src="//dayandnight2018.github.io/lib/js/vue.js"></script>
+        <!-- Jquery -->
+        <script src="//dayandnight2018.github.io/lib/js/jquery.js"></script>
+        <link rel="stylesheet" href="_mn-mode.css">
+</head>
+    <body>
+        <div id="app">
+            <div class="window" :style="displayBtn">
+                <div class="mainWindow">
+                    <img class="previewImage" :src="imageIcon">
+                    <span class="closeBtn" @click="closeWindow">×</span>
+                </div>
+            </div>
+        </div>
+        
+        <script>
+            window.$docsify = {
+                name: '',
+                repo: '',
+                loadSidebar: true,
+                coverpage: true,
+                search: {
+                    paths: 'auto',
+                    placeholder: '搜索',
+                    noData: '找不到结果',
+                    depth: 3
+                },
+                count: {
+                    countable: true,
+                    fontsize: '0.9em',
+                    color: 'rgb(90,90,90)',
+                    language: 'chinese'
+                }
+            };
+
+            var vue = new Vue({
+                el: '#app',
+                data:{
+                    imageIcon: undefined,
+                    active: false,
+                },methods: {
+                    closeWindow: function () {
+                        this.active = !this.active;
+                        this.imageIcon = undefined;
+                    }
+                },
+                computed: {
+                    displayBtn() {
+                        return {
+                            '--display-btn': this.active ? 'block' : 'none'
+                        }
+                    },
+                    displayImage() {
+                        return {
+                            '--display-image': 'url(' + this.imageIcon + ')'
+                        }
+                    }
+                }
+            });
+
+            $(function(){
+                $("img").each(function(ele){
+                    $(this).click(function(){
+                        vue.imageIcon = $(this).attr("src");
+                        vue.active = true;
+                    });
+                });
+            });
+        </script>
+        <!-- Docsify v4 -->
+        <script src="//dayandnight2018.github.io/lib/js/docsify.js"></script>
+        <!-- emoji -->
+        <script src="//dayandnight2018.github.io/lib/js/emoji.js"></script>
+        <!-- search box -->
+        <script src="//dayandnight2018.github.io/lib/js/search.js"></script>
+        <!-- image -->
+        <script src="//dayandnight2018.github.io/lib/js/zoom.js"></script>
+        <!-- image -->
+        <script src="//dayandnight2018.github.io/lib/js/zoom-en.js"></script>
+        <!-- copy code -->
+        <script src="//dayandnight2018.github.io/lib/js/copy-code.js"></script>
+        <!-- words count -->
+        <script src="//dayandnight2018.github.io/lib/js/count.js"></script>
+        <!-- code highlight -->
+        <script src="//dayandnight2018.github.io/lib/js/prism-java.js"></script>
+        <script src="//dayandnight2018.github.io/lib/js/reading-mode.js"></script>
+        
+        <!-- Export to PDF dependencies -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+        <script>
+            
+            // Add export PDF button and reading mode buttons
+            function addExportPDFButtons() {
+                // Remove existing buttons and containers if any
+                const existingElements = document.querySelectorAll('.export-pdf-btn, .reading-mode-btn, .recitation-mode-btn, .pdf-export-container, .control-panel-container');
+                existingElements.forEach(el => el.remove());
+                
+                // Create control panel container
+                const controlPanelContainer = document.createElement('div');
+                controlPanelContainer.className = 'control-panel-container';
+                controlPanelContainer.innerHTML = `
+                    <div class="control-panel-header" onclick="toggleControlPanel()">
+                        <span class="control-panel-title">📋 控制面板</span>
+                        <span class="control-panel-toggle">▼</span>
+                    </div>
+                    <div class="control-panel-content" id="controlPanelContent">
+                        <div class="control-panel-buttons"></div>
+                    </div>
+                `;
+                
+                // Set styles for control panel
+                controlPanelContainer.style.cssText = `
+                    position: fixed;
+                    top: 10px;
+                    right: 10px;
+                    z-index: 9999;
+                    background-color: rgba(255, 255, 255, 0.95);
+                    border-radius: 10px;
+                    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+                    font-family: inherit;
+                    font-size: 13px;
+                    transition: all 0.3s ease;
+                    max-width: 200px;
+                    border: 1px solid rgba(0, 0, 0, 0.1);
+                `;
+                
+                // Set styles for control panel header
+                const header = controlPanelContainer.querySelector('.control-panel-header');
+                header.style.cssText = `
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    padding: 10px 15px;
+                    cursor: pointer;
+                    border-radius: 10px;
+                    background-color: #f8f9fa;
+                    font-weight: 600;
+                    color: #495057;
+                    transition: all 0.3s ease;
+                `;
+                
+                // Set styles for control panel toggle
+                const toggle = controlPanelContainer.querySelector('.control-panel-toggle');
+                toggle.style.cssText = `
+                    transition: transform 0.3s ease;
+                    font-size: 11px;
+                `;
+                
+                // Set styles for control panel content
+                const content = controlPanelContainer.querySelector('.control-panel-content');
+                content.style.cssText = `
+                    padding: 0;
+                    max-height: 0;
+                    overflow: hidden;
+                    transition: all 0.3s ease;
+                `;
+                
+                // Set styles for control panel buttons
+                const buttonsContainer = controlPanelContainer.querySelector('.control-panel-buttons');
+                buttonsContainer.style.cssText = `
+                    display: flex;
+                    flex-direction: column;
+                    gap: 8px;
+                    padding: 15px;
+                `;
+                
+                // Create image-based PDF export button
+                const imageExportBtn = document.createElement('button');
+                imageExportBtn.className = 'export-pdf-btn image-pdf-btn';
+                imageExportBtn.innerHTML = '🖼️ PDF';
+                imageExportBtn.style.cssText = `
+                    padding: 8px 16px;
+                    background-color: #10b981;
+                    color: white;
+                    border: none;
+                    border-radius: 6px;
+                    cursor: pointer;
+                    font-size: 12px;
+                    font-weight: 600;
+                    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+                    transition: all 0.3s ease;
+                    width: 100%;
+                    text-align: center;
+                    font-family: inherit;
+                `;
+                
+                // Add hover effect for image button
+                imageExportBtn.addEventListener('mouseenter', function() {
+                    this.style.backgroundColor = '#059669';
+                    this.style.transform = 'translateY(-1px)';
+                    this.style.boxShadow = '0 3px 12px rgba(16, 185, 129, 0.4)';
+                });
+                
+                imageExportBtn.addEventListener('mouseleave', function() {
+                    this.style.backgroundColor = '#10b981';
+                    this.style.transform = 'translateY(0)';
+                    this.style.boxShadow = '0 2px 8px rgba(16, 185, 129, 0.3)';
+                });
+                
+                // Create read this page button
+                const readThisPageBtn = document.createElement('button');
+                readThisPageBtn.className = 'read-this-page-btn';
+                readThisPageBtn.innerHTML = '🔊 阅读本页';
+                readThisPageBtn.style.cssText = `
+                    padding: 8px 16px;
+                    background-color: #3b82f6;
+                    color: white;
+                    border: none;
+                    border-radius: 6px;
+                    cursor: pointer;
+                    font-size: 12px;
+                    font-weight: 600;
+                    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+                    transition: all 0.3s ease;
+                    width: 100%;
+                    text-align: center;
+                    font-family: inherit;
+                `;
+                
+                // Add hover effect for read this page button
+                readThisPageBtn.addEventListener('mouseenter', function() {
+                    this.style.backgroundColor = '#2563eb';
+                    this.style.transform = 'translateY(-1px)';
+                    this.style.boxShadow = '0 3px 12px rgba(59, 130, 246, 0.4)';
+                });
+                
+                readThisPageBtn.addEventListener('mouseleave', function() {
+                    this.style.backgroundColor = '#3b82f6';
+                    this.style.transform = 'translateY(0)';
+                    this.style.boxShadow = '0 2px 8px rgba(59, 130, 246, 0.3)';
+                });
+                
+                // Append buttons to control panel
+                buttonsContainer.appendChild(imageExportBtn);
+                buttonsContainer.appendChild(readThisPageBtn);
+                
+                // Append control panel to document
+                document.body.appendChild(controlPanelContainer);
+                
+                // Add event listener for read this page —— 呼出右下角朗读设置卡片（音色 / 语速）
+                readThisPageBtn.addEventListener('click', function() {
+                    toggleSpeechCard();
+                });
+                
+                // Image-based PDF export function
+                imageExportBtn.addEventListener('click', function() {
+                    // Show loading indicator
+                    const originalText = imageExportBtn.innerHTML;
+                    imageExportBtn.innerHTML = '⏳ 正在生成图片版PDF...';
+                    imageExportBtn.disabled = true;
+                    
+                    // Get content to export
+                    const content = document.querySelector('.markdown-section');
+                    if (!content) {
+                        alert('未找到要导出的内容');
+                        imageExportBtn.innerHTML = originalText;
+                        imageExportBtn.disabled = false;
+                        return;
+                    }
+                    
+                    // Apply minimal structural styles for A4 PDF output — do NOT override content styling
+                    // so the PDF looks identical to the webpage.
+                    const pdfStyle = document.createElement('style');
+                    pdfStyle.id = 'pdf-font-style';
+                    pdfStyle.textContent = `
+                        body {
+                            background: white !important;
+                        }
+                        .markdown-section {
+                            width: 794px !important;
+                            max-width: 794px !important;
+                            margin: 0 auto !important;
+                            background: white !important;
+                            box-shadow: none !important;
+                        }
+                        img {
+                            max-width: 100% !important;
+                            height: auto !important;
+                        }
+                    `;
+                    document.head.appendChild(pdfStyle);
+                    
+                    // Export as image-based PDF using html2canvas
+                    try {
+                        const scale = 3;
+
+                        // A4 pixel height at the content width (794px) with A4 aspect ratio 210:297
+                        const pagePixelHeight = Math.round(794 * 297 / 210);
+
+                        // Collect Y-positions of all direct child block-element boundaries
+                        // so we can snap page breaks between elements instead of slicing text.
+                        const contentRect = content.getBoundingClientRect();
+                        const elementBoundaries = [];
+                        for (const child of content.children) {
+                            const rect = child.getBoundingClientRect();
+                            elementBoundaries.push({
+                                top: rect.top - contentRect.top,
+                                bottom: rect.bottom - contentRect.top
+                            });
+                        }
+
+                        // Capture content as a single full-height image
+                        html2canvas(content, {
+                            scale: scale,
+                            useCORS: true,
+                            windowWidth: content.scrollWidth,
+                            windowHeight: content.scrollHeight,
+                            backgroundColor: '#ffffff'
+                        }).then(canvas => {
+                            const totalCanvasHeight = canvas.height;
+                            // Convert page height to canvas (scaled) coordinates
+                            const pageCanvasHeight = pagePixelHeight * scale;
+
+                            // Build page-break Y positions (in canvas coordinates).
+                            // Each break is snapped to the nearest element boundary so text
+                            // rows are never cut in half.
+                            const breakPoints = [0];
+                            let nextBreak = pageCanvasHeight;
+                            while (nextBreak < totalCanvasHeight) {
+                                let bestY = nextBreak;
+                                let bestDist = Infinity;
+                                for (const b of elementBoundaries) {
+                                    const scaledBottom = b.bottom * scale;
+                                    const dist = Math.abs(scaledBottom - nextBreak);
+                                    // Only consider boundaries within a reasonable search window
+                                    if (dist < pageCanvasHeight * 0.25 && dist < bestDist) {
+                                        bestDist = dist;
+                                        bestY = scaledBottom;
+                                    }
+                                }
+                                breakPoints.push(bestY);
+                                nextBreak = bestY + pageCanvasHeight;
+                            }
+                            breakPoints.push(totalCanvasHeight);
+
+                            // Create PDF
+                            const { jsPDF } = window.jspdf;
+                            const pdf = new jsPDF('p', 'mm', 'a4');
+                            const pageWidthMM = pdf.internal.pageSize.getWidth();
+                            const pageHeightMM = pdf.internal.pageSize.getHeight();
+                            const imgWidthMM = pageWidthMM;
+
+                            // Draw each page slice onto a temporary canvas, then add to PDF
+                            for (let i = 0; i < breakPoints.length - 1; i++) {
+                                const sliceY = breakPoints[i];
+                                const sliceHeight = breakPoints[i + 1] - sliceY;
+                                const sliceCanvas = document.createElement('canvas');
+                                sliceCanvas.width = canvas.width;
+                                sliceCanvas.height = sliceHeight;
+                                const ctx = sliceCanvas.getContext('2d');
+                                ctx.drawImage(canvas,
+                                    0, sliceY, canvas.width, sliceHeight,
+                                    0, 0, canvas.width, sliceHeight
+                                );
+                                const sliceData = sliceCanvas.toDataURL('image/jpeg', 0.95);
+                                const sliceImgHeightMM = (sliceHeight * imgWidthMM) / canvas.width;
+
+                                if (i === 0) {
+                                    pdf.addImage(sliceData, 'JPEG', 0, 0, imgWidthMM, sliceImgHeightMM);
+                                } else {
+                                    pdf.addPage();
+                                    pdf.addImage(sliceData, 'JPEG', 0, 0, imgWidthMM, sliceImgHeightMM);
+                                }
+
+                                if (i > 100) {
+                                    alert('文档内容过多，已自动截断。建议分章节导出以获得完整内容。');
+                                    break;
+                                }
+                            }
+
+                            pdf.save('职业考试笔记-图片版.pdf');
+
+                            // Clean up
+                            const tempStyle = document.getElementById('pdf-font-style');
+                            if (tempStyle) {
+                                document.head.removeChild(tempStyle);
+                            }
+                            imageExportBtn.innerHTML = originalText;
+                            imageExportBtn.disabled = false;
+
+                        }).catch(error => {
+                            throw error;
+                        });
+
+                    } catch (error) {
+                        console.error('PDF生成错误:', error);
+
+                        const tempStyle = document.getElementById('pdf-font-style');
+                        if (tempStyle) {
+                            document.head.removeChild(tempStyle);
+                        }
+                        imageExportBtn.disabled = false;
+                        imageExportBtn.innerHTML = '🖼️ PDF';
+                        alert('PDF导出失败：' + (error.message || '未知错误') + '\n请重试或联系管理员。');
+                    }
+                });
+            }
+            
+            // Check if .markdown-section exists
+            function checkContentLoaded() {
+                const content = document.querySelector('.markdown-section');
+                if (content) {
+                    addExportPDFButtons();
+                } else {
+                    // Check again in 500ms
+                    setTimeout(checkContentLoaded, 500);
+                }
+            }
+            
+            // Start checking after DOM is loaded
+            document.addEventListener('DOMContentLoaded', function() {
+                checkContentLoaded();
+            });
+            
+            // Toggle control panel visibility
+            function toggleControlPanel() {
+                const content = document.getElementById('controlPanelContent');
+                const toggle = document.querySelector('.control-panel-toggle');
+                
+                if (content && toggle) {
+                    if (content.style.maxHeight === '' || content.style.maxHeight === '0px') {
+                        // Expand the panel
+                        content.style.maxHeight = content.scrollHeight + 'px';
+                        toggle.style.transform = 'rotate(180deg)';
+                    } else {
+                        // Collapse the panel
+                        content.style.maxHeight = '0px';
+                        toggle.style.transform = 'rotate(0deg)';
+                    }
+                }
+            }
+            
+            // Also check when hash changes (Docsify page navigation)
+            window.addEventListener('hashchange', function() {
+                checkContentLoaded();
+            });
+        </script>
+        <!-- ==================== 朗读控制卡片（右下角，可隐藏）—— 预排队连播 + 进度高亮（偏移定位，必中） ==================== -->
+        <style>
+            #speech-card{position:fixed;right:10px;bottom:10px;z-index:9999;width:270px;background:rgba(255,255,255,.97);border:1px solid rgba(0,0,0,.1);border-radius:10px;box-shadow:0 4px 16px rgba(0,0,0,.15);font-family:inherit;font-size:13px;color:#495057}
+            #speech-card .sc-hd{display:flex;justify-content:space-between;align-items:center;padding:10px 15px;border-radius:10px 10px 0 0;background:#f8f9fa;font-weight:600}
+            #speech-card .sc-x{cursor:pointer;font-size:16px;color:#6c757d;padding:0 4px;line-height:1}
+            #speech-card .sc-x:hover{color:#212529}
+            #speech-card .sc-bd{padding:12px 15px 15px}
+            #speech-card .sc-btns{display:flex;gap:8px}
+            #speech-card .sc-btn{flex:1;display:flex;align-items:center;justify-content:center;padding:7px 0;border:1px solid #ced4da;border-radius:6px;background:#fff;color:#3b82f6;cursor:pointer;transition:all .2s ease}
+            #speech-card .sc-btn:hover:not(:disabled){background:#3b82f6;color:#fff;border-color:#3b82f6}
+            #speech-card .sc-btn:disabled{opacity:.4;cursor:not-allowed}
+            #speech-card label{display:block;margin:10px 0 4px}
+            #speech-card select{width:100%;padding:6px 8px;border:1px solid #ced4da;border-radius:6px;font-size:12px;background:#fff;color:#495057}
+            #speech-card input[type=range]{width:100%}
+            /* 朗读进度高亮：当前句与正文明显区分 */
+            .markdown-section .sc-reading{background-color:rgba(255,235,59,.6);color:#c62828;font-weight:600;border-radius:3px;box-shadow:0 1px 6px rgba(255,193,7,.45);transition:background-color .25s ease,color .25s ease}
+        </style>
+        <div id="speech-card" style="display:none">
+            <div class="sc-hd"><span>🔊 朗读控制</span><span class="sc-x" title="隐藏卡片（不打断朗读）">×</span></div>
+            <div class="sc-bd">
+                <div class="sc-btns">
+                    <button id="speech-toggle" class="sc-btn" title="开始朗读"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path><path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path></svg></button>
+                    <button id="speech-pause" class="sc-btn" title="暂停朗读" disabled><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg></button>
+                    <button id="speech-resume" class="sc-btn" title="继续朗读" disabled><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg></button>
+                    <button id="speech-stop" class="sc-btn" title="停止朗读" disabled><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect></svg></button>
+                </div>
+                <label>音色</label>
+                <select id="speech-voice"></select>
+                <label>语速 <span id="speech-rate-val">1.0</span>x</label>
+                <input type="range" id="speech-rate" min="0.5" max="2" step="0.1" value="1">
+                <label>音调 <span id="speech-pitch-val">1.0</span></label>
+                <input type="range" id="speech-pitch" min="0.5" max="2" step="0.1" value="1">
+            </div>
+        </div>
+        <script>
+            // 右下角朗读控制卡片：开始/暂停/继续/停止 + 音色/语速/音调 + 进度高亮
+            // 连续性：滑动窗口预入队 QUEUE_AHEAD 句，浏览器排队连播，句间无 JS 往返停顿
+            // 高亮：与分句用同一份文本流、按绝对偏移定位，每句 onstart 时高亮 == 正在朗读的那句
+            (function() {
+                var card = document.getElementById('speech-card');
+                var toggleBtn = document.getElementById('speech-toggle');
+                var pauseBtn = document.getElementById('speech-pause');
+                var resumeBtn = document.getElementById('speech-resume');
+                var stopBtn = document.getElementById('speech-stop');
+                var voiceSel = document.getElementById('speech-voice');
+                var rateInput = document.getElementById('speech-rate');
+                var rateVal = document.getElementById('speech-rate-val');
+                var pitchInput = document.getElementById('speech-pitch');
+                var pitchVal = document.getElementById('speech-pitch-val');
+
+                var QUEUE_AHEAD = 4;         // 预入队句数：太小仍有句间停顿，太大取消时略卡
+                var sents = [];             // [{text, start}] 绝对偏移
+                var qHead = 0, done = 0, gen = 0;
+
+                // 音色列表：中文优先（偏好 晓晓/Xiaoxiao），分隔线后列英文
+                function fillVoices() {
+                    var voices = speechSynthesis.getVoices();
+                    if (!voices.length) return;
+                    voiceSel.innerHTML = '';
+                    var zh = [], en = [];
+                    voices.forEach(function(v) {
+                        if (/^zh/i.test(v.lang)) zh.push(v);
+                        else if (/^en/i.test(v.lang)) en.push(v);
+                    });
+                    if (!zh.length && !en.length) voices.forEach(function(v) { zh.push(v); });
+                    var preferred = -1;
+                    function add(v) {
+                        var o = document.createElement('option');
+                        o.value = v.name;
+                        o.textContent = v.name + ' (' + v.lang + ')';
+                        if (v.name === 'Xiaoxiao' || v.name.indexOf('晓') >= 0) preferred = voiceSel.options.length;
+                        voiceSel.appendChild(o);
+                    }
+                    zh.forEach(add);
+                    if (en.length) {
+                        var sep = document.createElement('option');
+                        sep.textContent = '──────────';
+                        sep.disabled = true;
+                        voiceSel.appendChild(sep);
+                        en.forEach(add);
+                    }
+                    if (preferred >= 0) voiceSel.selectedIndex = preferred;
+                }
+                fillVoices();
+                if (speechSynthesis.onvoiceschanged !== undefined) speechSynthesis.onvoiceschanged = fillVoices;
+
+                rateInput.oninput = function() { rateVal.textContent = parseFloat(rateInput.value).toFixed(1); };
+                pitchInput.oninput = function() { pitchVal.textContent = parseFloat(pitchInput.value).toFixed(1); };
+
+                function currentVoice() {
+                    var list = speechSynthesis.getVoices();
+                    for (var i = 0; i < list.length; i++) if (list[i].name === voiceSel.value) return list[i];
+                    return null;
+                }
+
+                function setState(t, p, r, s) {
+                    toggleBtn.disabled = t; pauseBtn.disabled = p; resumeBtn.disabled = r; stopBtn.disabled = s;
+                }
+
+                // ---------- 文本流收集（分句与高亮定位共用，保证偏移一致） ----------
+                function collectText(root) {
+                    var nodes = [], stream = '';
+                    var walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+                        acceptNode: function(n) {
+                            if (!n.nodeValue || !n.nodeValue.trim()) return NodeFilter.FILTER_REJECT;
+                            var p = n.parentElement;
+                            if (!p) return NodeFilter.FILTER_REJECT;
+                            var tag = p.tagName;
+                            if (tag === 'SCRIPT' || tag === 'STYLE') return NodeFilter.FILTER_REJECT;
+                            return NodeFilter.FILTER_ACCEPT;
+                        }
+                    });
+                    var n;
+                    while ((n = walker.nextNode())) {
+                        nodes.push({ node: n, start: stream.length });
+                        stream += n.nodeValue;
+                    }
+                    return { nodes: nodes, stream: stream };
+                }
+
+                function splitSentences(stream) {
+                    // 掩码字母/数字间的 "."（3.5、a.b），等长替换不改变偏移
+                    var masked = stream.replace(/(?<=[0-9A-Za-z])\.(?=[0-9A-Za-z])/g, '\u0001');
+                    var out = [], re = /[^。！？!?；;.]+(?:[。！？!?；;]+|\.(?=\s|$))*\s*/g, m;
+                    while ((m = re.exec(masked))) {
+                        var raw = stream.substring(m.index, m.index + m[0].length);   // 文本取自原始流
+                        if (raw.trim().length > 1) out.push({ text: raw, start: m.index });
+                        if (re.lastIndex === m.index) re.lastIndex++;
+                    }
+                    if (!out.length && stream.trim()) out.push({ text: stream, start: 0 });
+                    return out;
+                }
+
+                // ---------- 高亮 ----------
+                var wrapped = [];
+
+                function clearHighlight() {
+                    wrapped.forEach(function(span) {
+                        var parent = span.parentNode;
+                        if (!parent) return;
+                        parent.replaceChild(document.createTextNode(span.textContent), span);
+                        parent.normalize();
+                    });
+                    wrapped = [];
+                }
+
+                function highlightRange(start, end) {
+                    // 必须先恢复上一句高亮、再收集节点：clearHighlight 的 normalize() 会合并/替换
+                    // 文本节点，若先收集，失效的节点引用会让后续包裹静默失败（表现为部分句子无高亮）
+                    clearHighlight();
+                    var map = collectText(document.querySelector('.markdown-section') || document.body);
+                    // DOM 被重渲染导致流变化时，按内容回退定位；仍找不到则跳过高亮，朗读不受影响
+                    if (map.stream.length !== baseStreamLen) {
+                        var idx = map.stream.indexOf(currentSentText);
+                        if (idx === -1) return;
+                        start = idx; end = idx + currentSentText.length;
+                    }
+                    for (var i = 0; i < map.nodes.length; i++) {
+                        var rec = map.nodes[i], nLen = rec.node.nodeValue.length;
+                        var nStart = rec.start, nEnd = rec.start + nLen;
+                        if (nEnd <= start) continue;
+                        if (nStart >= end) break;
+                        var s = Math.max(start, nStart) - nStart;
+                        var e = Math.min(end, nEnd) - nStart;
+                        if (e <= s) continue;
+                        var node = rec.node;
+                        if (e < node.nodeValue.length) node.splitText(e);
+                        if (s > 0) node = node.splitText(s);
+                        var span = document.createElement('span');
+                        span.className = 'sc-reading';
+                        node.parentNode.replaceChild(span, node);
+                        span.appendChild(node);
+                        wrapped.push(span);
+                    }
+                    if (wrapped.length) {
+                        var top = wrapped[0].getBoundingClientRect().top;
+                        if (top < 60 || top > window.innerHeight - 120) {
+                            wrapped[0].scrollIntoView({ block: 'center', behavior: 'smooth' });
+                        }
+                    }
+                }
+
+                var baseStreamLen = 0, currentSentText = '';
+
+                // ---------- 朗读引擎：滑动窗口预入队 ----------
+                function makeUtterance(i) {
+                    var s = sents[i];
+                    var u = new SpeechSynthesisUtterance(s.text.replace(/\s+/g, ' ').trim());
+                    var v = currentVoice();
+                    if (v) { u.voice = v; u.lang = v.lang; }
+                    u.rate = parseFloat(rateInput.value) || 1;
+                    u.pitch = parseFloat(pitchInput.value) || 1;
+                    var myGen = gen;
+                    u.onstart = function() {
+                        if (myGen !== gen) return;
+                        currentSentText = s.text;
+                        highlightRange(s.start, s.start + s.text.length);   // 高亮 == 正在听到的那句
+                    };
+                    u.onend = function() { if (myGen === gen) advance(); };
+                    u.onerror = function() { if (myGen === gen) advance(); };
+                    return u;
+                }
+
+                function advance() {
+                    done++;
+                    topUp();
+                    if (done >= sents.length) {   // 全部读完：恢复正文与按钮
+                        gen++;
+                        clearHighlight();
+                        setState(false, true, true, true);
+                    }
+                }
+
+                function topUp() {
+                    while (qHead < sents.length && qHead - done < QUEUE_AHEAD) {
+                        speechSynthesis.speak(makeUtterance(qHead));
+                        qHead++;
+                    }
+                }
+
+                function reset() {
+                    gen++;
+                    speechSynthesis.cancel();
+                    clearHighlight();
+                    sents = []; qHead = 0; done = 0;
+                    setState(false, true, true, true);
+                }
+
+                toggleBtn.onclick = function() {
+                    var sec = document.querySelector('.markdown-section');
+                    if (!sec) { alert('未找到要朗读的内容'); return; }
+                    reset();
+                    var map = collectText(sec);
+                    var text = map.stream.replace(/\s+/g, ' ').trim();
+                    if (!text) { alert('当前页面没有可朗读的文字'); return; }
+                    baseStreamLen = map.stream.length;
+                    sents = splitSentences(map.stream);   // 与高亮共用同一份流，偏移必中
+                    qHead = 0; done = 0;
+                    setState(true, false, true, false);
+                    topUp();
+                };
+                pauseBtn.onclick = function() { speechSynthesis.pause(); setState(true, true, false, false); };   // 暂停保留高亮
+                resumeBtn.onclick = function() { speechSynthesis.resume(); setState(true, false, true, false); };
+                stopBtn.onclick = reset;
+
+                window.toggleSpeechCard = function() {
+                    card.style.display = (card.style.display === 'none') ? 'block' : 'none';
+                };
+                card.querySelector('.sc-x').onclick = function() {
+                    card.style.display = 'none';   // 仅隐藏卡片：不打断朗读，可再次呼出继续操作
+                };
+                // 切换页面（docsify hash 路由）时停止朗读并恢复高亮
+                window.addEventListener('hashchange', reset);
+            })();
+        </script>
+        <script src="_mn-mode.js"></script>
+</body>
+</html>
