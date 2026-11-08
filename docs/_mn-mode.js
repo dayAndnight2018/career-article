@@ -3,6 +3,9 @@
    diary 日记头卡片 / exam 题卡+选项+答案折叠 / essay 论文排版。 */
 (function () {
     var COMMENT = /<!--\s*mn-mode:\s*([\w-]+)\s*-->/;
+    var COMMENT_ALL = /<!--\s*mn-mode:\s*[\w-]+\s*-->/g;
+    // 与桌面端一致：仅识别已知场景，未知标记按 general 处理
+    var KNOWN_MODES = { diary: 1, exam: 1, essay: 1 };
     // Markdown 中连续的「日期：/天气：/心情：」行属于同一 <p>（软换行），按段捕获后逐行解析
     var META_LINE_RE = /^(日期|天气|心情|地点|温度|星期|节日|纪念日)[：:]\s*/;
 
@@ -230,17 +233,133 @@
         });
     }
 
+    // ---------- 静态页「导出 PDF」修正版（截图与所见渲染一致） ----------
+    // 旧版导出按钮：截图前强制 .markdown-section 794px 宽，并以内容宽充当克隆视口宽 ——
+    // 克隆文档按窄视口重排（侧边栏挤占内容列），导出结果与屏幕所见不一致；
+    // 分页吸附还可能选中页界下方的元素边界，切片超出一页高而被页底裁切。
+    // 修正：不干预布局（仅关装饰阴影）、不覆盖克隆视口、A4 比例按实际画布宽计算、
+    // 分页只向上吸附（内容整体后移，切片永不超页）。_mn-mode.js 随站点资源全量同步，
+    // 按钮重绑到本实现 —— 既有站点无需重建即可获得修正。
+    window.mnExportPdf = function (btn) {
+        var content = document.querySelector('.markdown-section');
+        if (!content) { alert('未找到要导出的内容'); return; }
+        if (typeof html2canvas === 'undefined' || !window.jspdf) {
+            alert('导出组件未加载（html2canvas / jsPDF），请检查网络后刷新重试');
+            return;
+        }
+        var orig = btn.innerHTML;
+        btn.disabled = true; btn.innerHTML = '⏳ 正在生成图片版PDF...';
+        // 导出期间的最小干预：只关页面装饰阴影、限制图片溢出 —— 不改变布局，截到即所见
+        var pdfStyle = document.createElement('style');
+        pdfStyle.id = 'pdf-font-style';
+        pdfStyle.textContent = '.markdown-section{box-shadow:none!important}'
+            + ' img{max-width:100%!important;height:auto!important}';
+        document.head.appendChild(pdfStyle);
+        var done = function () {
+            var s = document.getElementById('pdf-font-style');
+            if (s && s.parentNode) s.parentNode.removeChild(s);
+            btn.innerHTML = orig; btn.disabled = false;
+        };
+        // 超长文档防 canvas 单边尺寸上限（约 32000px）：按内容高度自适应精度
+        var scale = content.scrollHeight * 3 > 32000
+            ? Math.max(1, Math.floor(32000 / content.scrollHeight)) : 3;
+        html2canvas(content, {
+            scale: scale,
+            useCORS: true,
+            logging: false,
+            backgroundColor: '#ffffff'
+            // 刻意不覆盖 windowWidth/windowHeight：克隆文档按真实视口布局，截图与所见一致
+        }).then(function (canvas) {
+            var totalH = canvas.height;
+            var pageH = Math.round(canvas.width * 297 / 210);   // A4 210:297，按实际画布宽
+            // 收集块级元素底边：分页断点吸附到元素边界，避免文字被拦腰截断
+            var contentRect = content.getBoundingClientRect();
+            var bounds = [];
+            for (var ci = 0; ci < content.children.length; ci++) {
+                var cr = content.children[ci].getBoundingClientRect();
+                bounds.push(cr.bottom - contentRect.top);
+            }
+            // 只向上吸附（分页提前、内容后移）—— 切片不超过一页高，绘制不溢出页底
+            var breaks = [0];
+            var next = pageH;
+            while (next < totalH) {
+                var bestY = next, bestDist = Infinity;
+                for (var bi = 0; bi < bounds.length; bi++) {
+                    var sb = bounds[bi] * scale;
+                    if (sb <= next && sb > breaks[breaks.length - 1] + 4
+                        && next - sb < pageH * 0.3 && next - sb < bestDist) {
+                        bestDist = next - sb; bestY = sb;
+                    }
+                }
+                breaks.push(bestY);
+                next = bestY + pageH;
+            }
+            breaks.push(totalH);
+
+            var pdf = new window.jspdf.jsPDF('p', 'mm', 'a4');
+            var pageMM = pdf.internal.pageSize.getWidth();
+            for (var i = 0; i < breaks.length - 1; i++) {
+                var sliceH = breaks[i + 1] - breaks[i];
+                if (sliceH <= 0) continue;
+                if (i > 0) pdf.addPage();
+                var slice = document.createElement('canvas');
+                slice.width = canvas.width; slice.height = sliceH;
+                slice.getContext('2d').drawImage(canvas,
+                    0, breaks[i], canvas.width, sliceH,
+                    0, 0, canvas.width, sliceH);
+                var sliceMM = sliceH * pageMM / canvas.width;   // 按页宽等比铺放，保持纵横比
+                pdf.addImage(slice.toDataURL('image/jpeg', 0.95), 'JPEG', 0, 0, pageMM, sliceMM);
+                if (i > 100) { alert('文档内容过多，已自动截断。建议分章节导出以获得完整内容。'); break; }
+            }
+            pdf.save('职业考试笔记-图片版.pdf');
+            done();
+        }).catch(function (err) {
+            console.error('PDF生成错误:', err);
+            done();
+            alert('PDF导出失败：' + ((err && err.message) || '未知错误') + '\n请重试。');
+        });
+    };
+
+    // 把导出按钮重绑到修正版流程（幂等：带 data-mn-pdf 标记的跳过；
+    // 克隆替换原按钮 —— 旧监听随旧节点一起丢弃，对既有站点生效）
+    function mnBindPdfButton(btn) {
+        if (!btn || btn.getAttribute('data-mn-pdf')) return;
+        btn.setAttribute('data-mn-pdf', '1');
+        var fixed = btn.cloneNode(true);
+        fixed.addEventListener('click', function (e) {
+            e.preventDefault();
+            window.mnExportPdf(fixed);
+        });
+        if (btn.parentNode) btn.parentNode.replaceChild(fixed, btn);
+    }
+
+    function mnBindAllPdfButtons() {
+        var btns = document.querySelectorAll('.image-pdf-btn:not([data-mn-pdf])');
+        for (var i = 0; i < btns.length; i++) mnBindPdfButton(btns[i]);
+    }
+
+    if (document.body) {
+        mnBindAllPdfButtons();
+        // 控制面板按钮在页面切换后重建 —— 监听插入即时重绑
+        if (window.MutationObserver)
+            new MutationObserver(mnBindAllPdfButtons).observe(document.body, { childList: true, subtree: true });
+    }
+
     window.$docsify = window.$docsify || {};
     var plugin = function (hook, vm) {
         hook.afterEach(function (html) {
             var m = html.match(COMMENT);
-            vm.__mnMode = m ? m[1] : 'general';
-            return html.replace(COMMENT, '');
+            vm.__mnMode = (m && KNOWN_MODES[m[1]]) ? m[1] : 'general';
+            // 清除页面里全部模式注释（多处标记也不残留到渲染结果）
+            return html.replace(COMMENT_ALL, '');
         });
         hook.doneEach(function () {
+            mnBindAllPdfButtons();   // 每页渲染后兜底重绑（按钮由模板脚本延迟创建）
             var sec = document.querySelector('.markdown-section');
             if (!sec) return;
             var mode = vm.__mnMode || 'general';
+            // general 不标注属性（与桌面端一致，避免命中 [data-mode] 通配规则）
+            if (mode === 'general') { sec.removeAttribute('data-mode'); return; }
             sec.setAttribute('data-mode', mode);
             try {
                 if (mode === 'diary') transformDiary(sec);

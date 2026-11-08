@@ -168,6 +168,21 @@
     [data-mode="essay"] p{line-height:2}
 }
 
+/* ---------- docsify 静态页专属（作用域 .markdown-section / body:has；应用内预览与导出无此结构，不受影响） ---------- */
+/* 整页纸张氛围：主题白底 → 模式纸色（:has 不可用的旧浏览器优雅降级为仅内容列变色） */
+body:has(.markdown-section[data-mode="diary"]){background:#f6eeda}
+body:has(.markdown-section[data-mode="exam"]){background:#eef0f6}
+body:has(.markdown-section[data-mode="essay"]){background:#eceae4}
+/* 静态页「导出 PDF」按钮会注入 .markdown-section{background:white!important} 抹掉纸色，
+   以更高优先级恢复模式纸色（general 页保持白底行为不变） */
+.markdown-section[data-mode="diary"]{background:#fbf5ea!important}
+.markdown-section[data-mode="exam"]{background:#f6f7fb!important}
+/* 导出按钮被 _mn-mode.js 克隆重绑后，模板挂在旧节点上的 JS 悬停效果丢失 —— CSS 补回 */
+.image-pdf-btn:hover:not(:disabled){
+    background-color:#059669!important;transform:translateY(-1px);
+    box-shadow:0 3px 12px rgba(16,185,129,.4)!important;
+}
+
 /* ---------- 应用内预览容器配合（对导出/静态页无副作用） ---------- */
 .preview-box:has([data-mode="diary"]){background:#fbf5ea}
 .preview-box:has([data-mode="exam"]){background:#eef0f6}
