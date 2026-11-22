@@ -2,7 +2,7 @@
 <html lang="en">
     <head>
         <meta charset="UTF-8">
-        <title>Document</title>
+        <title>career-article</title>
         <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
         <meta name="description" content="Description">
         <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
@@ -10,8 +10,7 @@
         <script src="//dayandnight2018.github.io/lib/js/vue.js"></script>
         <!-- Jquery -->
         <script src="//dayandnight2018.github.io/lib/js/jquery.js"></script>
-        <link rel="stylesheet" href="_mn-mode.css">
-</head>
+    </head>
     <body>
         <div id="app">
             <div class="window" :style="displayBtn">
@@ -24,7 +23,7 @@
         
         <script>
             window.$docsify = {
-                name: '',
+                name: 'career-article',
                 repo: '',
                 loadSidebar: true,
                 coverpage: true,
@@ -240,9 +239,40 @@
                     this.style.boxShadow = '0 2px 8px rgba(59, 130, 246, 0.3)';
                 });
                 
+                // Create video export button —— 将“阅读本页”导出为带声音的视频
+                const videoExportBtn = document.createElement('button');
+                videoExportBtn.className = 'read-this-page-btn video-export-btn';
+                videoExportBtn.innerHTML = '🎬 导出视频';
+                videoExportBtn.style.cssText = `
+                    padding: 8px 16px;
+                    background-color: #8b5cf6;
+                    color: white;
+                    border: none;
+                    border-radius: 6px;
+                    cursor: pointer;
+                    font-size: 12px;
+                    font-weight: 600;
+                    box-shadow: 0 2px 8px rgba(139, 92, 246, 0.3);
+                    transition: all 0.3s ease;
+                    width: 100%;
+                    text-align: center;
+                    font-family: inherit;
+                `;
+                videoExportBtn.addEventListener('mouseenter', function() {
+                    this.style.backgroundColor = '#7c3aed';
+                    this.style.transform = 'translateY(-1px)';
+                    this.style.boxShadow = '0 3px 12px rgba(139, 92, 246, 0.4)';
+                });
+                videoExportBtn.addEventListener('mouseleave', function() {
+                    this.style.backgroundColor = '#8b5cf6';
+                    this.style.transform = 'translateY(0)';
+                    this.style.boxShadow = '0 2px 8px rgba(139, 92, 246, 0.3)';
+                });
+
                 // Append buttons to control panel
                 buttonsContainer.appendChild(imageExportBtn);
                 buttonsContainer.appendChild(readThisPageBtn);
+                buttonsContainer.appendChild(videoExportBtn);
                 
                 // Append control panel to document
                 document.body.appendChild(controlPanelContainer);
@@ -250,6 +280,11 @@
                 // Add event listener for read this page —— 呼出右下角朗读设置卡片（音色 / 语速）
                 readThisPageBtn.addEventListener('click', function() {
                     toggleSpeechCard();
+                });
+
+                // Open the video export card —— 呼出左下角视频导出卡片
+                videoExportBtn.addEventListener('click', function() {
+                    if (window.toggleVideoCard) window.toggleVideoCard();
                 });
                 
                 // Image-based PDF export function
@@ -447,20 +482,35 @@
         </script>
         <!-- ==================== 朗读控制卡片（右下角，可隐藏）—— 预排队连播 + 进度高亮（偏移定位，必中） ==================== -->
         <style>
-            #speech-card{position:fixed;right:10px;bottom:10px;z-index:9999;width:270px;background:rgba(255,255,255,.97);border:1px solid rgba(0,0,0,.1);border-radius:10px;box-shadow:0 4px 16px rgba(0,0,0,.15);font-family:inherit;font-size:13px;color:#495057}
-            #speech-card .sc-hd{display:flex;justify-content:space-between;align-items:center;padding:10px 15px;border-radius:10px 10px 0 0;background:#f8f9fa;font-weight:600}
-            #speech-card .sc-x{cursor:pointer;font-size:16px;color:#6c757d;padding:0 4px;line-height:1}
-            #speech-card .sc-x:hover{color:#212529}
-            #speech-card .sc-bd{padding:12px 15px 15px}
-            #speech-card .sc-btns{display:flex;gap:8px}
-            #speech-card .sc-btn{flex:1;display:flex;align-items:center;justify-content:center;padding:7px 0;border:1px solid #ced4da;border-radius:6px;background:#fff;color:#3b82f6;cursor:pointer;transition:all .2s ease}
-            #speech-card .sc-btn:hover:not(:disabled){background:#3b82f6;color:#fff;border-color:#3b82f6}
-            #speech-card .sc-btn:disabled{opacity:.4;cursor:not-allowed}
-            #speech-card label{display:block;margin:10px 0 4px}
-            #speech-card select{width:100%;padding:6px 8px;border:1px solid #ced4da;border-radius:6px;font-size:12px;background:#fff;color:#495057}
+            #speech-card,#video-card{position:fixed;bottom:10px;z-index:9999;width:270px;background:rgba(255,255,255,.97);border:1px solid rgba(0,0,0,.1);border-radius:10px;box-shadow:0 4px 16px rgba(0,0,0,.15);font-family:inherit;font-size:13px;color:#495057}
+            #speech-card{right:10px}
+            #video-card{left:10px}
+            #speech-card .sc-hd,#video-card .sc-hd{display:flex;justify-content:space-between;align-items:center;padding:10px 15px;border-radius:10px 10px 0 0;background:#f8f9fa;font-weight:600}
+            #speech-card .sc-x,#video-card .sc-x{cursor:pointer;font-size:16px;color:#6c757d;padding:0 4px;line-height:1}
+            #speech-card .sc-x:hover,#video-card .sc-x:hover{color:#212529}
+            #speech-card .sc-bd,#video-card .sc-bd{padding:12px 15px 15px}
+            #speech-card .sc-btns,#video-card .sc-btns{display:flex;gap:8px}
+            #speech-card .sc-btn,#video-card .sc-btn{flex:1;display:flex;align-items:center;justify-content:center;padding:7px 0;border:1px solid #ced4da;border-radius:6px;background:#fff;color:#3b82f6;cursor:pointer;transition:all .2s ease}
+            #speech-card .sc-btn:hover:not(:disabled),#video-card .sc-btn:hover:not(:disabled){background:#3b82f6;color:#fff;border-color:#3b82f6}
+            #speech-card .sc-btn:disabled,#video-card .sc-btn:disabled{opacity:.4;cursor:not-allowed}
+            #speech-card label,#video-card label{display:block;margin:10px 0 4px}
+            #speech-card select,#video-card select{width:100%;padding:6px 8px;border:1px solid #ced4da;border-radius:6px;font-size:12px;background:#fff;color:#495057}
             #speech-card input[type=range]{width:100%}
-            /* 朗读进度高亮：当前句与正文明显区分 */
-            .markdown-section .sc-reading{background-color:rgba(255,235,59,.6);color:#c62828;font-weight:600;border-radius:3px;box-shadow:0 1px 6px rgba(255,193,7,.45);transition:background-color .25s ease,color .25s ease}
+            #video-card input[type=text]{width:100%;box-sizing:border-box;padding:6px 8px;border:1px solid #ced4da;border-radius:6px;font-size:12px;background:#fff;color:#495057}
+            #video-card .vc-tip{margin:8px 0 0;padding:8px 10px;background:#f8f9fa;border:1px solid #e9ecef;border-radius:6px;font-size:11.5px;line-height:1.7;color:#6c757d}
+            #video-card .vc-tip b{color:#495057}
+            #video-card .vc-status{margin-top:8px;font-size:12px;color:#6c757d;min-height:16px;line-height:1.5}
+            #video-card .vc-status.err{color:#dc3545}
+            /* 朗读进度高亮：整句柔和荧光笔 —— 不改字重（避免排版抖动），跨行片段各自成圆角色块 */
+            .markdown-section .sc-reading{
+                background-color:rgba(255,213,79,.45);
+                color:#92400e;
+                border-radius:4px;
+                box-shadow:0 1px 10px rgba(245,158,11,.3);
+                box-decoration-break:clone;
+                -webkit-box-decoration-break:clone;
+                transition:background-color .25s ease,color .25s ease;
+            }
         </style>
         <div id="speech-card" style="display:none">
             <div class="sc-hd"><span>🔊 朗读控制</span><span class="sc-x" title="隐藏卡片（不打断朗读）">×</span></div>
@@ -479,6 +529,37 @@
                 <input type="range" id="speech-pitch" min="0.5" max="2" step="0.1" value="1">
             </div>
         </div>
+        <!-- ==================== 导出朗读视频卡片（左下角）：画面 = 提词器画布，声音 = 本标签页音频捕获 ==================== -->
+        <div id="video-card" style="display:none">
+            <div class="sc-hd"><span>🎬 导出朗读视频</span><span class="sc-x vc-x" title="隐藏卡片（不打断录制）">×</span></div>
+            <div class="sc-bd">
+                <label>视频尺寸</label>
+                <select id="video-size">
+                    <option value="1920x1080">1920 × 1080 · 横版（电脑）</option>
+                    <option value="1080x2060">1080 × 2060 · 竖版（手机）</option>
+                </select>
+                <label>朗读引擎</label>
+                <select id="video-engine">
+                    <option value="browser">浏览器朗读 · 适用于 GitHub Pages 静态部署</option>
+                    <option value="system">系统语音合成 · 需本机运行应用，无弹窗</option>
+                </select>
+                <div id="video-sys-rows">
+                    <label>音色（系统语音）</label>
+                    <select id="video-voice"><option value="">（探测中…）</option></select>
+                    <label>语速（系统语音） <span id="video-rate-val">1.0</span>x</label>
+                    <input type="range" id="video-rate" min="0.5" max="2" step="0.1" value="1">
+                    <label>后端地址（运行本应用的电脑）</label>
+                    <input type="text" id="video-backend" placeholder="留空自动探测（同源 / localhost:5000）">
+                </div>
+                <div class="vc-tip" id="video-tip-sys">需本机（或局域网内电脑）运行 MarkdownNotes 应用：后端用 Windows 语音把整页朗读直接合成为音频，页面边播边录 —— 全程无弹窗、不依赖 HTTPS，画面与声音按音频时间轴精确同步。</div>
+                <div class="vc-tip" id="video-tip-browser" style="display:none">适用于 GitHub Pages 等纯静态部署：点击开始后浏览器会弹出“共享屏幕”请求 —— 请选择<b>“此标签页”</b>并勾选<b>“同时共享标签页音频”</b>，朗读声才会录进视频。浏览器的安全模型不允许网页直接截取朗读声，这一步确认无法省略。录制时将从本页开头完整重新朗读，期间请保持本页在前台。</div>
+                <div class="sc-btns" style="margin-top:10px">
+                    <button id="video-start" class="sc-btn">● 开始录制</button>
+                    <button id="video-stop" class="sc-btn" disabled>■ 停止并下载</button>
+                </div>
+                <div id="video-status" class="vc-status"></div>
+            </div>
+        </div>
         <script>
             // 右下角朗读控制卡片：开始/暂停/继续/停止 + 音色/语速/音调 + 进度高亮
             // 连续性：滑动窗口预入队 QUEUE_AHEAD 句，浏览器排队连播，句间无 JS 往返停顿
@@ -494,15 +575,45 @@
                 var rateVal = document.getElementById('speech-rate-val');
                 var pitchInput = document.getElementById('speech-pitch');
                 var pitchVal = document.getElementById('speech-pitch-val');
+                var vCard = document.getElementById('video-card');
+                var sizeSel = document.getElementById('video-size');
+                var vStartBtn = document.getElementById('video-start');
+                var vStopBtn = document.getElementById('video-stop');
+                var vStatus = document.getElementById('video-status');
+                var engineSel = document.getElementById('video-engine');
+                var vVoiceSel = document.getElementById('video-voice');
+                var vRateInput = document.getElementById('video-rate');
+                var vRateVal = document.getElementById('video-rate-val');
+                var vBackendInput = document.getElementById('video-backend');
+                var sysRows = document.getElementById('video-sys-rows');
+                var tipSys = document.getElementById('video-tip-sys');
+                var tipBrowser = document.getElementById('video-tip-browser');
 
                 var QUEUE_AHEAD = 4;         // 预入队句数：太小仍有句间停顿，太大取消时略卡
                 var sents = [];             // [{text, start}] 绝对偏移
                 var qHead = 0, done = 0, gen = 0;
 
+                // ---------- 视频导出状态 ----------
+                var VD = {
+                    active: false, w: 0, h: 0, canvas: null, ctx: null, raf: 0,
+                    recorder: null, chunks: [], mime: '', ext: 'webm', sizeLabel: '',
+                    sents: [], cur: -1, title: '', startTs: 0, scrollY: 0, tracks: [],
+                    pageSents: null, audioOffsets: [], audioDur: 0, probe: 0,
+                    actx: null, srcNode: null, playT0: 0
+                };
+
                 // 音色列表：中文优先（偏好 晓晓/Xiaoxiao），分隔线后列英文
+                // 修复音色突变：voiceschanged 常在朗读过程中触发（Windows 音色懒加载 / 网络音色上线），
+                // 重建 <select> 时必须保留用户当前选择，否则后续排队句子会被悄悄换成别的音色
+                var VOICE_KEY = 'docsify-speech-voice';
+                var chosenVoiceName = '';
+                var lastVoice = null;      // 音色列表刷新瞬间按名字找不到时的兜底引用
+                try { chosenVoiceName = localStorage.getItem(VOICE_KEY) || ''; } catch (e) {}
+
                 function fillVoices() {
                     var voices = speechSynthesis.getVoices();
                     if (!voices.length) return;
+                    var keep = chosenVoiceName || voiceSel.value;
                     voiceSel.innerHTML = '';
                     var zh = [], en = [];
                     voices.forEach(function(v) {
@@ -526,18 +637,38 @@
                         voiceSel.appendChild(sep);
                         en.forEach(add);
                     }
-                    if (preferred >= 0) voiceSel.selectedIndex = preferred;
+                    // 恢复选择：优先用户保存的音色 → 否则默认偏好（晓晓）→ 否则第一项
+                    var restored = false;
+                    if (keep) {
+                        for (var oi = 0; oi < voiceSel.options.length; oi++) {
+                            if (voiceSel.options[oi].value === keep) {
+                                voiceSel.selectedIndex = oi;
+                                restored = true;
+                                break;
+                            }
+                        }
+                    }
+                    if (!restored && preferred >= 0) voiceSel.selectedIndex = preferred;
+                    chosenVoiceName = voiceSel.value;
                 }
                 fillVoices();
                 if (speechSynthesis.onvoiceschanged !== undefined) speechSynthesis.onvoiceschanged = fillVoices;
+                voiceSel.onchange = function() {          // 显式记住用户选择（跨页面刷新）
+                    chosenVoiceName = voiceSel.value;
+                    try { localStorage.setItem(VOICE_KEY, chosenVoiceName); } catch (e) {}
+                };
 
                 rateInput.oninput = function() { rateVal.textContent = parseFloat(rateInput.value).toFixed(1); };
                 pitchInput.oninput = function() { pitchVal.textContent = parseFloat(pitchInput.value).toFixed(1); };
 
                 function currentVoice() {
                     var list = speechSynthesis.getVoices();
-                    for (var i = 0; i < list.length; i++) if (list[i].name === voiceSel.value) return list[i];
-                    return null;
+                    for (var i = 0; i < list.length; i++) {
+                        if (list[i].name === chosenVoiceName) { lastVoice = list[i]; return list[i]; }
+                    }
+                    // 列表刷新瞬间按名字找不到：沿用上一次解析到的音色对象，
+                    // 避免排队中的句子掉回浏览器默认音色（表现为朗读中途音色突变）
+                    return lastVoice;
                 }
 
                 function setState(t, p, r, s) {
@@ -641,6 +772,7 @@
                     u.onstart = function() {
                         if (myGen !== gen) return;
                         currentSentText = s.text;
+                        if (VD.active) VD.cur = i;   // 视频提词器画面与朗读句同步推进
                         highlightRange(s.start, s.start + s.text.length);   // 高亮 == 正在听到的那句
                     };
                     u.onend = function() { if (myGen === gen) advance(); };
@@ -655,6 +787,7 @@
                         gen++;
                         clearHighlight();
                         setState(false, true, true, true);
+                        if (VD.active) vdFinish(true);   // 导出模式：朗读自然结束 → 收尾录制并下载
                     }
                 }
 
@@ -665,7 +798,8 @@
                     }
                 }
 
-                function reset() {
+                // 仅停语音与状态，不触碰视频录制（视频导出流程自行调用）
+                function stopSpeechCore() {
                     gen++;
                     speechSynthesis.cancel();
                     clearHighlight();
@@ -673,22 +807,617 @@
                     setState(false, true, true, true);
                 }
 
-                toggleBtn.onclick = function() {
+                function reset() {
+                    var wasExport = VD.active;
+                    stopSpeechCore();
+                    if (wasExport) vdFinish(false);   // 中途停止导出 → 已录部分照样生成下载
+                }
+
+                // 收集本页文本并从头开始朗读（页面高亮与视频画面共用同一引擎）
+                function startReading() {
                     var sec = document.querySelector('.markdown-section');
-                    if (!sec) { alert('未找到要朗读的内容'); return; }
-                    reset();
+                    if (!sec) { alert('未找到要朗读的内容'); return false; }
                     var map = collectText(sec);
-                    var text = map.stream.replace(/\s+/g, ' ').trim();
-                    if (!text) { alert('当前页面没有可朗读的文字'); return; }
+                    if (!map.stream.replace(/\s+/g, ' ').trim()) { alert('当前页面没有可朗读的文字'); return false; }
                     baseStreamLen = map.stream.length;
                     sents = splitSentences(map.stream);   // 与高亮共用同一份流，偏移必中
                     qHead = 0; done = 0;
                     setState(true, false, true, false);
                     topUp();
+                    return true;
+                }
+
+                toggleBtn.onclick = function() {
+                    stopSpeechCore();
+                    startReading();
                 };
                 pauseBtn.onclick = function() { speechSynthesis.pause(); setState(true, true, false, false); };   // 暂停保留高亮
                 resumeBtn.onclick = function() { speechSynthesis.resume(); setState(true, false, true, false); };
                 stopBtn.onclick = reset;
+
+                // ==================== 导出朗读视频 ====================
+                // 画面：离屏画布“提词器”（标题 + 当前句荧光高亮 + 进度条），canvas.captureStream 生成视频轨
+                // 声音：getDisplayMedia 捕获本标签页音频（Web Speech 的朗读声无法直接接入 WebAudio，标签页捕获是标准做法）
+                // 合流后 MediaRecorder 录制；支持 1920×1080 横版（电脑）与 1080×2060 竖版（手机），停止即下载本地
+                var VD_FONT = '"Microsoft YaHei","PingFang SC","Noto Sans SC","Source Han Sans SC",system-ui,sans-serif';
+
+                function vdStatus(msg, isErr) {
+                    vStatus.className = 'vc-status' + (isErr ? ' err' : '');
+                    vStatus.textContent = msg;
+                }
+                function vdFail(msg) {
+                    vdStatus(msg, true);
+                    vStartBtn.disabled = false;
+                    vStopBtn.disabled = true;
+                }
+                function vdStopTracks() {
+                    VD.tracks.forEach(function(t) { try { t.stop(); } catch (e) {} });
+                    VD.tracks = [];
+                }
+
+                // ---------- 朗读引擎选择：系统语音（后端合成，无弹窗） / 浏览器语音（共享标签页） ----------
+                var BACKEND_KEY = 'docsify-tts-backend';
+                var sysVoices = null;      // null=未探测；[] = 不可用
+                try { vBackendInput.value = localStorage.getItem(BACKEND_KEY) || ''; } catch (e) {}
+
+                function updateEngineUi() {
+                    var sys = engineSel.value === 'system';
+                    sysRows.style.display = sys ? '' : 'none';
+                    tipSys.style.display = sys ? '' : 'none';
+                    tipBrowser.style.display = sys ? 'none' : '';
+                }
+                function vdBase() {
+                    return ((vBackendInput.value || '').trim() || window.location.origin).replace(/\/+$/, '');
+                }
+                function fillSysVoices() {
+                    vVoiceSel.innerHTML = '';
+                    if (!sysVoices || !sysVoices.length) {
+                        var o = document.createElement('option');
+                        o.value = '';
+                        o.textContent = '（未检测到可用系统语音）';
+                        vVoiceSel.appendChild(o);
+                        return;
+                    }
+                    sysVoices.forEach(function(v) {
+                        var o = document.createElement('option');
+                        o.value = v.name;
+                        o.textContent = v.name + ' (' + v.lang + ')' + (v.gender ? ' · ' + v.gender : '');
+                        vVoiceSel.appendChild(o);
+                    });
+                }
+                // 探测顺序：自定义地址 → 当前页面源 → localhost:5000（电脑上阅读 GitHub Pages 页时命中）
+                function vdProbeBase(base) {
+                    return fetch(base.replace(/\/+$/, '') + '/api/tts/voices')
+                        .then(function(r) { return r.ok ? r.json() : Promise.reject(); })
+                        .then(function(j) { return (j && j.success && j.data && j.data.length) ? j.data : Promise.reject(); });
+                }
+                var sysProbing = false;
+                function vdLoadVoices() {
+                    if (sysVoices || sysProbing) return;
+                    sysProbing = true;
+                    var seen = {}, bases = [];
+                    [vBackendInput.value.trim(), window.location.origin, 'http://localhost:5000'].forEach(function(b) {
+                        b = (b || '').replace(/\/+$/, '');
+                        if (b && !seen[b]) { seen[b] = 1; bases.push(b); }
+                    });
+                    vVoiceSel.innerHTML = '';
+                    vVoiceSel.appendChild((function() {
+                        var o = document.createElement('option'); o.value = ''; o.textContent = '（探测中…）'; return o;
+                    })());
+                    var i = 0;
+                    (function next() {
+                        if (i >= bases.length) {
+                            sysVoices = [];
+                            fillSysVoices();
+                            afterProbe();
+                            sysProbing = false;
+                            return;
+                        }
+                        var trying = bases[i++];
+                        vdProbeBase(trying).then(function(list) {
+                            sysVoices = list;
+                            if (!vBackendInput.value.trim()) {
+                                vBackendInput.value = trying;   // 回填探测成功的地址，合成时直接使用
+                                try { localStorage.setItem(BACKEND_KEY, trying); } catch (e) {}
+                            }
+                            fillSysVoices();
+                            afterProbe();
+                            sysProbing = false;
+                        }).catch(next);
+                    })();
+                    function afterProbe() {
+                        if (sysVoices && sysVoices.length) {
+                            // 静态部署默认浏览器引擎，不打扰；检测到本机后端仅提示可无弹窗录制
+                            if (engineSel.value === 'browser') {
+                                vdStatus('已检测到本机语音后端（' + sysVoices.length + ' 个系统音色）：切换“系统语音合成”可无弹窗录制');
+                            }
+                        } else if (engineSel.value === 'system') {
+                            // 用户主动选了系统引擎但没有后端（静态部署常态）：给出指引，不自动切换
+                            vdStatus('未检测到语音后端：请填写运行应用的电脑地址，或改用“浏览器朗读”', true);
+                        }
+                        // 浏览器引擎 + 无后端（GitHub Pages 常态）：保持静默，不报错
+                    }
+                }
+                engineSel.onchange = function() {
+                    updateEngineUi();
+                    if (engineSel.value === 'system' && sysVoices === null) vdLoadVoices();
+                };
+                vBackendInput.onchange = function() {
+                    var v = vBackendInput.value.trim();
+                    try { v ? localStorage.setItem(BACKEND_KEY, v) : localStorage.removeItem(BACKEND_KEY); } catch (e) {}
+                    sysVoices = null;   // 地址变了重新探测
+                    vdLoadVoices();
+                };
+                vRateInput.oninput = function() { vRateVal.textContent = parseFloat(vRateInput.value).toFixed(1); };
+                updateEngineUi();
+
+                // ---------- 提词器绘制 ----------
+                function vdMetrics() {
+                    if (VD.w >= VD.h) {   // 横版 1920×1080
+                        return {
+                            side: 150, headTop: 80, headH: 200, footH: 150,
+                            titleFont: '600 46px ' + VD_FONT, metaFont: '400 24px ' + VD_FONT,
+                            bodyFont: '400 42px ' + VD_FONT, bodyBold: '600 42px ' + VD_FONT,
+                            lineH: 72, gap: 44, maxW: VD.w - 320
+                        };
+                    }
+                    // 竖版 1080×2060
+                    return {
+                        side: 96, headTop: 110, headH: 250, footH: 170,
+                        titleFont: '600 54px ' + VD_FONT, metaFont: '400 26px ' + VD_FONT,
+                        bodyFont: '400 50px ' + VD_FONT, bodyBold: '600 50px ' + VD_FONT,
+                        lineH: 86, gap: 52, maxW: VD.w - 200
+                    };
+                }
+                function vdRoundRect(ctx, x, y, w, h, r) {
+                    if (w <= 0 || h <= 0) return;
+                    r = Math.min(r, w / 2, h / 2);
+                    ctx.beginPath();
+                    ctx.moveTo(x + r, y);
+                    ctx.arcTo(x + w, y, x + w, y + h, r);
+                    ctx.arcTo(x + w, y + h, x, y + h, r);
+                    ctx.arcTo(x, y + h, x, y, r);
+                    ctx.arcTo(x, y, x + w, y, r);
+                    ctx.closePath();
+                }
+                function vdEllipsis(ctx, text, maxW) {
+                    if (ctx.measureText(text).width <= maxW) return text;
+                    var t = text;
+                    while (t.length > 1 && ctx.measureText(t + '…').width > maxW) t = t.slice(0, -1);
+                    return t + '…';
+                }
+                // 中英混排折行：英文按整词回退，中文按字
+                function vdWrapLines(ctx, text, maxW) {
+                    var lines = [], line = '';
+                    for (var i = 0; i < text.length; i++) {
+                        var ch = text.charAt(i), test = line + ch;
+                        if (ctx.measureText(test).width > maxW && line) {
+                            var sp = line.lastIndexOf(' ');
+                            if (sp > 0 && /[A-Za-z0-9]/.test(ch)) {
+                                lines.push(line.slice(0, sp));
+                                line = line.slice(sp + 1) + ch;
+                            } else {
+                                lines.push(line);
+                                line = ch === ' ' ? '' : ch;
+                            }
+                        } else {
+                            line = test;
+                        }
+                    }
+                    if (line) lines.push(line);
+                    return lines.length ? lines : [''];
+                }
+
+                function vdDraw() {
+                    var ctx = VD.ctx, W = VD.w, H = VD.h;
+                    if (!ctx) return;
+                    var M = vdMetrics();
+                    // 背景
+                    var g = ctx.createLinearGradient(0, 0, 0, H);
+                    g.addColorStop(0, '#fdfdfe');
+                    g.addColorStop(1, '#f2f4f7');
+                    ctx.fillStyle = g;
+                    ctx.fillRect(0, 0, W, H);
+
+                    var now = Date.now();
+                    var elapsed = VD.startTs ? Math.max(0, now - VD.startTs) : 0;
+                    var mm = Math.floor(elapsed / 60000), ss = Math.floor(elapsed / 1000) % 60;
+                    var timeText = (mm < 10 ? '0' : '') + mm + ':' + (ss < 10 ? '0' : '') + ss;
+
+                    // 头部：REC 红点 + 计时 + 标题
+                    ctx.textBaseline = 'alphabetic';
+                    ctx.font = M.metaFont;
+                    var pulse = 0.45 + 0.55 * Math.abs(Math.sin(now / 400));
+                    ctx.fillStyle = 'rgba(239,68,68,' + pulse.toFixed(3) + ')';
+                    ctx.beginPath();
+                    ctx.arc(M.side + 13, M.headTop + 13, 13, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.fillStyle = '#9ca3af';
+                    ctx.fillText('REC', M.side + 38, M.headTop + 22);
+                    var tw = ctx.measureText(timeText).width;
+                    ctx.fillStyle = '#6b7280';
+                    ctx.fillText(timeText, W - M.side - tw, M.headTop + 22);
+                    ctx.fillStyle = '#111827';
+                    ctx.font = M.titleFont;
+                    ctx.fillText(vdEllipsis(ctx, VD.title, W - M.side * 2 - 140), M.side, M.headTop + 92);
+                    ctx.strokeStyle = 'rgba(17,24,39,.08)';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.moveTo(M.side, M.headH - 24);
+                    ctx.lineTo(W - M.side, M.headH - 24);
+                    ctx.stroke();
+
+                    // 正文：当前句 ±4 的提词窗口，平滑滚动使当前句居中
+                    var bodyTop = M.headH, bodyBot = H - M.footH, bodyH = bodyBot - bodyTop;
+                    var cur = VD.cur;
+                    var anchor = cur < 0 ? 0 : cur;
+                    var from = Math.max(0, anchor - 4);
+                    var to = Math.min(VD.sents.length - 1, anchor + 4);
+                    var items = [], yAcc = 0;
+                    for (var i = from; i <= to; i++) {
+                        ctx.font = (i === cur) ? M.bodyBold : M.bodyFont;
+                        var lines = vdWrapLines(ctx, VD.sents[i].text.replace(/\s+/g, ' ').trim(), M.maxW);
+                        var ih = lines.length * M.lineH;
+                        items.push({ i: i, lines: lines, y: yAcc, h: ih });
+                        yAcc += ih + M.gap;
+                    }
+                    var totalH = Math.max(1, yAcc - M.gap);
+                    var curIt = null;
+                    for (var k = 0; k < items.length; k++) if (items[k].i === cur) curIt = items[k];
+                    var target = curIt ? curIt.y + curIt.h / 2 : totalH / 2;
+                    VD.scrollY += (target - VD.scrollY) * 0.16;
+                    if (Math.abs(target - VD.scrollY) < 0.5) VD.scrollY = target;
+
+                    ctx.save();
+                    ctx.beginPath();
+                    ctx.rect(M.side * 0.35, bodyTop, W - M.side * 0.7, bodyH);
+                    ctx.clip();
+                    var offY = bodyTop + bodyH / 2 - VD.scrollY;
+                    for (var k2 = 0; k2 < items.length; k2++) {
+                        var it = items[k2], iy = offY + it.y;
+                        if (iy + it.h < bodyTop - 60 || iy > bodyBot + 60) continue;
+                        var isCur = it.i === cur;
+                        var past = cur >= 0 && it.i < cur;
+                        ctx.font = isCur ? M.bodyBold : M.bodyFont;
+                        for (var L = 0; L < it.lines.length; L++) {
+                            var ly = iy + L * M.lineH + M.lineH * 0.74;
+                            if (isCur) {   // 荧光笔底块（与页面高亮同风格）
+                                var lw = ctx.measureText(it.lines[L]).width;
+                                vdRoundRect(ctx, M.side - 16, ly - M.lineH * 0.7, lw + 32, M.lineH, 12);
+                                ctx.fillStyle = 'rgba(255,213,79,.5)';
+                                ctx.fill();
+                            }
+                            ctx.fillStyle = isCur ? '#111827' : (past ? '#b9c1cc' : '#8a95a3');
+                            ctx.fillText(it.lines[L], M.side, ly);
+                        }
+                    }
+                    ctx.restore();
+
+                    // 底部：进度条 + 句序
+                    var pbY = H - M.footH + 44, pbW = W - M.side * 2;
+                    vdRoundRect(ctx, M.side, pbY, pbW, 12, 6);
+                    ctx.fillStyle = 'rgba(17,24,39,.08)';
+                    ctx.fill();
+                    var frac = VD.sents.length ? (anchor + 1) / VD.sents.length : 0;
+                    if (frac > 0) {
+                        var pg = ctx.createLinearGradient(M.side, 0, M.side + Math.max(12, pbW * frac), 0);
+                        pg.addColorStop(0, '#f59e0b');
+                        pg.addColorStop(1, '#fbbf24');
+                        ctx.fillStyle = pg;
+                        vdRoundRect(ctx, M.side, pbY, Math.max(12, pbW * frac), 12, 6);
+                        ctx.fill();
+                    }
+                    ctx.font = M.metaFont;
+                    ctx.fillStyle = '#6b7280';
+                    ctx.fillText('第 ' + (anchor + 1) + ' / ' + VD.sents.length + ' 句', M.side, pbY + 58);
+                    var st = VD.sizeLabel + ' · ' + (VD.w >= VD.h ? '横版' : '竖版');
+                    var stw = ctx.measureText(st).width;
+                    ctx.fillText(st, W - M.side - stw, pbY + 58);
+                }
+                function vdTick() {
+                    if (!VD.active) return;
+                    vdDraw();
+                    VD.raf = requestAnimationFrame(vdTick);
+                }
+
+                // ---------- 收尾与下载 ----------
+                function vdDownload() {
+                    var chunks = VD.chunks;
+                    VD.chunks = [];
+                    if (!chunks.length) { vdStatus('没有录到内容，未生成文件', true); return; }
+                    var blob = new Blob(chunks, { type: VD.mime.split(';')[0] });
+                    function p(n) { return (n < 10 ? '0' : '') + n; }
+                    var d = new Date();
+                    var name = '朗读视频-' + VD.sizeLabel + '-' +
+                        d.getFullYear() + p(d.getMonth() + 1) + p(d.getDate()) + '-' +
+                        p(d.getHours()) + p(d.getMinutes()) + p(d.getSeconds()) + '.' + VD.ext;
+                    var url = URL.createObjectURL(blob);
+                    var a = document.createElement('a');
+                    a.href = url;
+                    a.download = name;
+                    document.body.appendChild(a);
+                    a.click();
+                    a.remove();
+                    setTimeout(function() { URL.revokeObjectURL(url); }, 15000);
+                    vdStatus('✅ 已下载 ' + name + '（' + (blob.size / 1048576).toFixed(1) + ' MB）');
+                }
+                function vdFinish(natural) {
+                    if (!VD.active) return;
+                    VD.active = false;
+                    cancelAnimationFrame(VD.raf);
+                    vdStatus('录制结束，正在生成视频文件…');
+                    try {
+                        if (VD.recorder && VD.recorder.state !== 'inactive') VD.recorder.stop();
+                        else vdStatus('没有录到内容，未生成文件', true);
+                    } catch (e) {
+                        vdStatus('停止录制失败：' + (e.message || e), true);
+                    }
+                    vdStopTracks();
+                    vStartBtn.disabled = false;
+                    vStopBtn.disabled = true;
+                    if (VD.srcNode) {   // 系统语音引擎：停 WebAudio 播放
+                        try { VD.srcNode.onended = null; VD.srcNode.stop(); } catch (e) {}
+                        VD.srcNode = null;
+                    }
+                    if (VD.actx) {
+                        try { VD.actx.close(); } catch (e) {}
+                        VD.actx = null;
+                    }
+                    VD.canvas = null;
+                    VD.ctx = null;
+                    VD.recorder = null;
+                }
+
+                // ---------- 公共：提词器画布 + 音轨合流 + 录制器 ----------
+                function vdInitRecorder(audioTracks) {
+                    VD.canvas = document.createElement('canvas');
+                    VD.canvas.width = VD.w;
+                    VD.canvas.height = VD.h;
+                    VD.ctx = VD.canvas.getContext('2d');
+                    VD.tracks = [];
+                    var mixed = new MediaStream(), canvasStream;
+                    try {
+                        canvasStream = VD.canvas.captureStream(30);
+                    } catch (err) {
+                        vdFail('画布视频流创建失败：' + (err.message || err));
+                        return false;
+                    }
+                    canvasStream.getVideoTracks().forEach(function(t) { mixed.addTrack(t); VD.tracks.push(t); });
+                    audioTracks.forEach(function(t) { mixed.addTrack(t); VD.tracks.push(t); });
+
+                    // 选封装格式：优先 mp4（手机相册可直接播放），退回 webm
+                    var cands = audioTracks.length ? [
+                        'video/mp4;codecs=avc1.42E01E,mp4a.40.2',
+                        'video/webm;codecs=vp9,opus',
+                        'video/webm;codecs=vp8,opus',
+                        'video/webm'
+                    ] : [
+                        'video/mp4;codecs=avc1.42E01E',
+                        'video/mp4',
+                        'video/webm;codecs=vp9',
+                        'video/webm'
+                    ];
+                    VD.mime = '';
+                    for (var ci = 0; ci < cands.length; ci++) {
+                        if (MediaRecorder.isTypeSupported(cands[ci])) { VD.mime = cands[ci]; break; }
+                    }
+                    if (!VD.mime) { vdStopTracks(); vdFail('浏览器没有可用的视频编码'); return false; }
+                    VD.ext = VD.mime.indexOf('mp4') >= 0 ? 'mp4' : 'webm';
+
+                    VD.chunks = [];
+                    try {
+                        VD.recorder = new MediaRecorder(mixed, {
+                            mimeType: VD.mime,
+                            videoBitsPerSecond: 8000000,
+                            audioBitsPerSecond: 128000
+                        });
+                    } catch (err) {
+                        vdStopTracks();
+                        vdFail('创建录制器失败：' + (err.message || err));
+                        return false;
+                    }
+                    VD.recorder.ondataavailable = function(e) { if (e.data && e.data.size) VD.chunks.push(e.data); };
+                    VD.recorder.onstop = vdDownload;
+                    return true;
+                }
+                function vdSetupStart(pageSents, sec) {
+                    var parts = sizeSel.value.split('x');
+                    VD.w = parseInt(parts[0], 10);
+                    VD.h = parseInt(parts[1], 10);
+                    VD.sizeLabel = sizeSel.value;
+                    var h1 = sec.querySelector('h1');
+                    VD.sents = pageSents;
+                    VD.pageSents = pageSents;
+                    VD.cur = -1;
+                    VD.scrollY = 0;
+                    VD.startTs = 0;
+                    VD.probe = 0;
+                    VD.audioOffsets = [];
+                    VD.audioDur = 0;
+                    VD.title = ((h1 && h1.textContent.trim()) || document.title || '朗读');
+                    stopSpeechCore();   // 停掉可能正在进行的朗读，录制时从头完整朗读
+                    VD.active = true;
+                    vStartBtn.disabled = true;
+                    vStopBtn.disabled = false;
+                }
+
+                // ---------- 引擎一：系统语音（后端 SAPI 合成，无弹窗） ----------
+                async function vdStartSystem() {
+                    var sec = document.querySelector('.markdown-section');
+                    if (!sec) { vdFail('未找到要朗读的内容'); return; }
+                    var map = collectText(sec);
+                    if (!map.stream.replace(/\s+/g, ' ').trim()) { vdFail('当前页面没有可朗读的文字'); return; }
+                    var pageSents = splitSentences(map.stream);
+                    if (!pageSents.length) { vdFail('没有可朗读的句子'); return; }
+                    if (!vVoiceSel.value) { vdFail('系统语音不可用（未探测到后端或音色）'); return; }
+
+                    // 1) 后端整页合成：一个 WAV + 每句起始秒数
+                    var texts = pageSents.map(function(s) { return s.text.replace(/\s+/g, ' ').trim(); });
+                    var base = vdBase();
+                    vdStatus('正在用系统语音合成整页朗读音频，长文可能需要几十秒…');
+                    var resp;
+                    try {
+                        resp = await fetch(base + '/api/tts/synthesize', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                sentences: texts,
+                                voice: vVoiceSel.value,
+                                rate: parseFloat(vRateInput.value) || 1,
+                                pitch: 1
+                            })
+                        });
+                    } catch (err) {
+                        vdFail('无法连接后端（' + base + '）：' + (err.message || err) + '。请确认应用正在运行、地址正确；或改用浏览器朗读引擎。');
+                        return;
+                    }
+                    if (!resp.ok) {
+                        var msg = '语音合成失败 (HTTP ' + resp.status + ')';
+                        try { var j = await resp.json(); if (j && j.message) msg = j.message; } catch (e) {}
+                        vdFail(msg);
+                        return;
+                    }
+                    var offsets = [];
+                    try { offsets = JSON.parse(resp.headers.get('X-Sentence-Offsets') || '[]'); } catch (e) {}
+                    var wavBuf = await resp.arrayBuffer();
+
+                    // 2) WebAudio 解码排播：MediaStreamDestination 提供可录制音轨，同时外放监听
+                    var actx;
+                    try { actx = new (window.AudioContext || window.webkitAudioContext)(); }
+                    catch (err) { vdFail('无法创建音频环境：' + (err.message || err)); return; }
+                    if (actx.state === 'suspended') { try { await actx.resume(); } catch (e) {} }
+                    var audioBuf;
+                    try { audioBuf = await actx.decodeAudioData(wavBuf); }
+                    catch (err) {
+                        vdFail('音频解码失败：' + (err.message || err));
+                        try { actx.close(); } catch (e) {}
+                        return;
+                    }
+                    var dest = actx.createMediaStreamDestination();
+                    var srcNode = actx.createBufferSource();
+                    srcNode.buffer = audioBuf;
+                    srcNode.connect(dest);
+                    srcNode.connect(actx.destination);
+
+                    vdSetupStart(pageSents, sec);
+                    if (!vdInitRecorder(dest.stream.getAudioTracks())) {
+                        try { actx.close(); } catch (e) {}
+                        VD.active = false;
+                        vStartBtn.disabled = false;
+                        return;
+                    }
+                    VD.audioOffsets = offsets.length === pageSents.length ? offsets : [];
+                    VD.audioDur = audioBuf.duration;
+                    VD.actx = actx;
+                    VD.srcNode = srcNode;
+                    baseStreamLen = map.stream.length;   // 页面高亮回退定位基准
+                    vdStatus('🔴 录制中（系统语音，无弹窗）…结束后点“停止并下载”');
+                    vdDraw();
+                    VD.recorder.start(1000);
+                    VD.startTs = Date.now();
+                    VD.playT0 = actx.currentTime + 0.3;
+                    srcNode.onended = function() { if (VD.active) vdFinish(true); };
+                    try { srcNode.start(VD.playT0); }
+                    catch (err) {
+                        vdFail('音频播放失败：' + (err.message || err));
+                        vdFinish(false);
+                        return;
+                    }
+                    VD.raf = requestAnimationFrame(vdTickSys);
+                }
+                // 系统引擎的帧循环：以音频时钟定位当前句（比事件驱动更精确）
+                function vdTickSys() {
+                    if (!VD.active) return;
+                    var t = VD.actx ? (VD.actx.currentTime - VD.playT0) : 0;
+                    if (VD.audioOffsets.length) {
+                        var idx = VD.cur;
+                        while (VD.probe < VD.audioOffsets.length && VD.audioOffsets[VD.probe] <= t) { idx = VD.probe; VD.probe++; }
+                        if (idx !== VD.cur && idx >= 0) {
+                            VD.cur = idx;
+                            currentSentText = VD.pageSents[idx].text;
+                            highlightRange(VD.pageSents[idx].start, VD.pageSents[idx].start + VD.pageSents[idx].text.length);
+                        }
+                    }
+                    vdDraw();
+                    if (t >= VD.audioDur + 0.4) { vdFinish(true); return; }
+                    VD.raf = requestAnimationFrame(vdTickSys);
+                }
+
+                // ---------- 引擎二：浏览器朗读（speechSynthesis + 共享本标签页音频） ----------
+                async function vdStartBrowser() {
+                    if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) {
+                        vdFail('当前环境不支持捕获标签页音频（需通过 HTTPS 或 localhost 访问）');
+                        return;
+                    }
+                    var sec = document.querySelector('.markdown-section');
+                    if (!sec) { vdFail('未找到要朗读的内容'); return; }
+                    var map = collectText(sec);
+                    if (!map.stream.replace(/\s+/g, ' ').trim()) { vdFail('当前页面没有可朗读的文字'); return; }
+                    var vdSents = splitSentences(map.stream);
+                    if (!vdSents.length) { vdFail('没有可朗读的句子'); return; }
+
+                    // 1) 捕获本标签页音频 —— 朗读声由此进入视频音轨
+                    vdStatus('请在弹窗中选择“此标签页”，并勾选“同时共享标签页音频”…');
+                    var disp;
+                    try {
+                        disp = await navigator.mediaDevices.getDisplayMedia({ video: { frameRate: 30 }, audio: true });
+                    } catch (err) {
+                        vdFail('已取消共享，未开始录制');
+                        return;
+                    }
+                    var audioTracks = disp.getAudioTracks();
+                    if (!audioTracks.length) {
+                        var goOn = confirm('未检测到音频轨（没有勾选“共享标签页音频”）。\n继续将得到【无声音】的视频，确定继续吗？');
+                        disp.getTracks().forEach(function(t) { try { t.stop(); } catch (e) {} });
+                        if (!goOn) { vdFail('已取消，未开始录制'); return; }
+                    }
+
+                    vdSetupStart(vdSents, sec);
+                    if (!vdInitRecorder(audioTracks)) { VD.active = false; vStartBtn.disabled = false; return; }
+                    audioTracks.forEach(function(t) {
+                        t.addEventListener('ended', function() {   // 用户点了浏览器“停止共享”按钮
+                            if (VD.active) { stopSpeechCore(); vdFinish(false); }
+                        });
+                    });
+
+                    // 2) 开录并从头朗读（先画好首帧，保证视频不黑屏起步）
+                    vdStatus(audioTracks.length ? '🔴 录制中…结束后点“停止并下载”' : '🔴 录制中（无声音）…结束后点“停止并下载”');
+                    vdDraw();
+                    VD.recorder.start(1000);
+                    VD.raf = requestAnimationFrame(vdTick);
+                    setTimeout(function() {
+                        if (!VD.active) return;
+                        VD.startTs = Date.now();
+                        startReading();   // 复用主朗读引擎：页面高亮 + 视频画面 + 声音三者同步
+                    }, 600);
+                }
+
+                // ---------- 开始录制入口 ----------
+                vStartBtn.onclick = function() {
+                    if (VD.active) return;
+                    if (!window.MediaRecorder) { vdFail('当前浏览器不支持 MediaRecorder，无法录制视频'); return; }
+                    if (engineSel.value === 'system') {
+                        if (sysVoices === null) {
+                            vdLoadVoices();   // 还没探测完：触发探测，完成后由用户再点一次
+                            vdStatus('正在探测系统语音后端，请稍候再点“开始录制”…');
+                            return;
+                        }
+                        vdStartSystem();
+                        return;
+                    }
+                    vdStartBrowser();
+                };
+
+                // 停止并下载（reset 内部检测 VD.active → 收尾录制并下载已录部分）
+                vStopBtn.onclick = function() { reset(); };
+
+                window.toggleVideoCard = function() {
+                    vCard.style.display = (vCard.style.display === 'none') ? 'block' : 'none';
+                    if (vCard.style.display === 'block' && sysVoices === null) vdLoadVoices();   // 打开即探测系统语音
+                };
+                vCard.querySelector('.vc-x').onclick = function() {
+                    vCard.style.display = 'none';   // 仅隐藏卡片：不打断录制
+                };
 
                 window.toggleSpeechCard = function() {
                     card.style.display = (card.style.display === 'none') ? 'block' : 'none';
@@ -700,11 +1429,5 @@
                 window.addEventListener('hashchange', reset);
             })();
         </script>
-        <script src="_mn-mode.js"></script>
-    <script>
-        (function (cfg) {
-            cfg.alias = Object.assign({}, cfg.alias, { '/.*/_sidebar.md': '/_sidebar.md' });
-        })(window.$docsify = window.$docsify || {});
-    </script>
-</body>
+    </body>
 </html>
